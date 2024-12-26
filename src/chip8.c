@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     uint16_t opcode;
 
     // main loop
-    while (chip8.display.powered_on) {
+    while (chip8.display.poweredOn) {
 
         // update timers
         ticks = SDL_GetTicks();
@@ -91,6 +91,7 @@ int main(int argc, char **argv)
         //printf("vd: %02x\n", chip8.v[13]);
         //printf("ve: %02x\n", chip8.v[14]);
         //printf("vf: %02x\n", chip8.v[15]);
+        //printf("stacked values: %d\n", stacked(&chip8.stack));
         //printf(" ------- \n");
 
         chip8.pc += 2;
@@ -113,6 +114,8 @@ int main(int argc, char **argv)
     }
 
     // cleanup
+    free(chip8.display.pixels);
+    free(chip8.display.pixelDrawn);
     SDL_DestroyRenderer(chip8.display.renderer);
     SDL_DestroyWindow(chip8.display.window);
     SDL_Quit();

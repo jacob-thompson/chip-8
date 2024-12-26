@@ -4,7 +4,7 @@ void resetDisplay(display *display)
 {
     for (int y = 0; y < CHIP8_HEIGHT; y++)
         for (int x = 0; x < CHIP8_WIDTH; x++)
-            display->pixelDrawn[y][x] = false;
+            display->pixelDrawn[y * CHIP8_WIDTH + x] = false;
 }
 
 int initDisplay(display *display)
@@ -27,17 +27,22 @@ int initDisplay(display *display)
     if (display->renderer == NULL)
         return EXIT_FAILURE;
 
+    display->pixels = calloc(CHIP8_HEIGHT * CHIP8_WIDTH, sizeof(SDL_Rect));
+
     for (int y = 0; y < CHIP8_HEIGHT; y++)
         for (int x = 0; x < CHIP8_WIDTH; x++) {
-            display->pixels[y][x].x = x * SCALE;
-            display->pixels[y][x].y = y * SCALE;
-            display->pixels[y][x].w = SCALE;
-            display->pixels[y][x].h = SCALE;
+            display->pixels[y * CHIP8_WIDTH + x].x = x * SCALE;
+            display->pixels[y * CHIP8_WIDTH + x].y = y * SCALE;
+            display->pixels[y * CHIP8_WIDTH + x].w = SCALE;
+            display->pixels[y * CHIP8_WIDTH + x].h = SCALE;
         }
+
+
+    display->pixelDrawn = calloc(CHIP8_HEIGHT * CHIP8_WIDTH, sizeof(bool));
 
     resetDisplay(display);
 
-    display->powered_on = true;
+    display->poweredOn = true;
 
     return EXIT_SUCCESS;
 }
@@ -49,7 +54,7 @@ void handleEvent(display *display, SDL_Event *event)
         case SDL_KEYUP:
             switch (event->key.keysym.scancode) {
                 case SDL_SCANCODE_ESCAPE:
-                    display->powered_on = false;
+                    display->poweredOn = false;
                     break;
                 case SDL_SCANCODE_1:
                     display->keyDown[0x1] = false;
@@ -177,7 +182,7 @@ void handleEvent(display *display, SDL_Event *event)
 
         // quit gracefully
         case SDL_QUIT:
-            display->powered_on = false;
+            display->poweredOn = false;
     }
 }
 
@@ -199,7 +204,10 @@ int drawPixels(display *display)
 
     for (int y = 0; y < CHIP8_HEIGHT; y++)
         for (int x = 0; x < CHIP8_WIDTH; x++)
-            if (display->pixelDrawn[y][x] && SDL_RenderFillRect(display->renderer, &display->pixels[y][x]) != EXIT_SUCCESS)
+            if (
+                display->pixelDrawn[y * CHIP8_WIDTH + x] &&
+                SDL_RenderFillRect(display->renderer, &display->pixels[y * CHIP8_WIDTH + x]) != EXIT_SUCCESS
+            )
                 return EXIT_FAILURE;
 
     return EXIT_SUCCESS;
